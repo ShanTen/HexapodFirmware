@@ -1,0 +1,7 @@
+data/registers.h.i
+data/platform/sx1278-mbed.cpp.i
+data/sx1278.c.i
+data/README.md.i
+data/platform/sx1278-mbed.h.i
+data/sx1278.h.i
+data/LICENSE.txt.i
