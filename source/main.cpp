@@ -12,12 +12,17 @@
 
 /////////////////////////////////// Movement Command Macros /////////////////////////////////////////////
 
-#define HOME_POSITION "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n" 
+// #define HOME_POSITION "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n" 
+// #define MOVE_FORWAD "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#2P1300#3P1700#8P1700#9P1300#27P1700#29P1300T500D500\r\n#1P1300#7P1700#28P1700T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#2P1833#7P1500#28P1500T500D500\r\n#5P1300#6P1700#25P1700#26P1312#30P1300#32P1700T500D500\r\n#4P1300#24P1700#31P1300T500D500\r\n#2P1500#4P1500#5P1833#8P1500#24P1500#25P1167#27P1500#30P1833#31P1500T500D500\r\n#3P1500#5P1500#6P1500#9P1500#25P1500#26P1500#29P1500#30P1500#32P1500T500D500\r\n"
+// #define MOVE_BACK "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#2P1300#3P1700#8P1700#9P1300#27P1700#29P1300T500D500\r\n#1P1700#7P1300#28P1300T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#7P1500#28P1500T500D500\r\n#5P1300#6P1700#25P1700#26P1300#30P1300#32P1700T500D500\r\n#4P1700#24P1300#31P1700T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#4P1500#5P1833#8P1500#9P1500#24P1500#27P1500#29P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
+// #define MOVE_LEFT "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#1P1500#2P1300#3P1700#8P1700#9P1300#25P1500#27P1700#29P1300T500D500\r\n#1P1700#7P1700#28P1700T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#5P1300#6P1700#7P1500#25P1700#26P1300#28P1500#30P1300#32P1700T500D500\r\n#4P1700#5P1300#24P1700#25P1700#31P1700T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#8P1500#9P1500#27P1500#29P1500T500D500\r\n#4P1500#24P1500#28P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
+// #define MOVE_RIGHT "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#1P1500#2P1700#3P1300#8P1300#9P1700#25P1500#27P1300#29P1700T500D500\r\n#1P1300#7P1300#28P1300T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#5P1700#6P1300#7P1500#25P1300#26P1700#28P1500#30P1700#32P1300T500D500\r\n#4P1300#5P1700#24P1300#25P1300#31P1300T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#8P1500#9P1500#27P1500#29P1500T500D500\r\n#4P1500#24P1500#28P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
 
-#define MOVE_FORWAD "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#2P1300#3P1700#8P1700#9P1300#27P1700#29P1300T500D500\r\n#1P1300#7P1700#28P1700T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#2P1833#7P1500#28P1500T500D500\r\n#5P1300#6P1700#25P1700#26P1312#30P1300#32P1700T500D500\r\n#4P1300#24P1700#31P1300T500D500\r\n#2P1500#4P1500#5P1833#8P1500#24P1500#25P1167#27P1500#30P1833#31P1500T500D500\r\n#3P1500#5P1500#6P1500#9P1500#25P1500#26P1500#29P1500#30P1500#32P1500T500D500\r\n"
-#define MOVE_BACK "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#2P1300#3P1700#8P1700#9P1300#27P1700#29P1300T500D500\r\n#1P1700#7P1300#28P1300T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#7P1500#28P1500T500D500\r\n#5P1300#6P1700#25P1700#26P1300#30P1300#32P1700T500D500\r\n#4P1700#24P1300#31P1700T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#4P1500#5P1833#8P1500#9P1500#24P1500#27P1500#29P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
-#define MOVE_LEFT "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#1P1500#2P1300#3P1700#8P1700#9P1300#25P1500#27P1700#29P1300T500D500\r\n#1P1700#7P1700#28P1700T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#5P1300#6P1700#7P1500#25P1700#26P1300#28P1500#30P1300#32P1700T500D500\r\n#4P1700#5P1300#24P1700#25P1700#31P1700T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#8P1500#9P1500#27P1500#29P1500T500D500\r\n#4P1500#24P1500#28P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
-#define MOVE_RIGHT "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#1P1500#2P1700#3P1300#8P1300#9P1700#25P1500#27P1300#29P1700T500D500\r\n#1P1300#7P1300#28P1300T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#5P1700#6P1300#7P1500#25P1300#26P1700#28P1500#30P1700#32P1300T500D500\r\n#4P1300#5P1700#24P1300#25P1300#31P1300T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#8P1500#9P1500#27P1500#29P1500T500D500\r\n#4P1500#24P1500#28P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
+#define HOME_POSITION "#G4C1\n\r"
+#define MOVE_FORWAD "#G1C1\n\r"
+#define MOVE_BACK "#G2C1\n\r"
+#define MOVE_RIGHT "#G3C1\n\r"
+#define MOVE_LEFT "#G4C1\n\r"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,7 +36,7 @@ const char *password = "22323554"; // Replace with your WiFi Password
 
 // IP and port of the server
 // const char *host_ip = "192.168.1.18";
-const char *host_ip = "192.168.1.27";
+const char *host_ip = "192.168.1.19"; //change this if you are screwed
 const int port = 8080;
 
 WiFiInterface *wifi;
@@ -46,8 +51,8 @@ static DevI2C devI2c(PB_11,PB_10);
 static LPS22HBSensor press_temp(&devI2c);
 static HTS221Sensor hum_temp(&devI2c);
 
-#define TX_PIN PC_4  // Transmit pin (A0)
-#define RX_PIN PC_5  // Receive pin (A1)
+#define TX_PIN PC_4  // Receive pin (A1) 
+#define RX_PIN PC_5  // Transmit pin (A0)
 
 static BufferedSerial uart_Movement(TX_PIN, RX_PIN, 9600);  // UART3 -- Sending Movement Instructions => wired 
 static DigitalIn mq_sensor(PA_15); 
@@ -56,7 +61,7 @@ static DigitalIn mq_sensor(PA_15);
 
 static SPI spi_LoRA(PA_7, PA_6, PA_5); // SPI -- LoRA 
 static DigitalOut cs(PB_6);
-SX1278_LoRa lora(&spi, &nss);
+// SX1278_LoRa lora(&spi, &nss);
 // Configuration constants for India (865-867 MHz band)
 #define FREQUENCY 865500000  // 865.5 MHz
 #define BANDWIDTH 125000     // 125 kHz bandwidth
@@ -66,34 +71,34 @@ SX1278_LoRa lora(&spi, &nss);
 #define PREAMBLE_LENGTH 8    // Preamble length
 #define SX1278_REG_VERSION  0x42
 
-void initializeLoRa() {
-    spi.format(8, 0);
-    spi.frequency(1000000);
+// void initializeLoRa() {
+//     spi.format(8, 0);
+//     spi.frequency(1000000);
 
-    if (lora.init()) {
-        lora.setFrequency(FREQUENCY);
-        lora.setSpreadingFactor(SPREADING_FACTOR);
-        lora.setBandwidth(BANDWIDTH);
-        lora.setCodingRate(CODING_RATE);
-        lora.setTxPower(TX_POWER);
-        lora.setPreambleLength(PREAMBLE_LENGTH);
-    }
-}
+//     if (lora.init()) {
+//         lora.setFrequency(FREQUENCY);
+//         lora.setSpreadingFactor(SPREADING_FACTOR);
+//         lora.setBandwidth(BANDWIDTH);
+//         lora.setCodingRate(CODING_RATE);
+//         lora.setTxPower(TX_POWER);
+//         lora.setPreambleLength(PREAMBLE_LENGTH);
+//     }
+// }
 
-uint8_t sx1278_read_register(uint8_t reg) {
-    nss = 0;  // Select the SX1278 by pulling NSS low
-    spi.write(reg & 0x7F);  // Send register address (0x7F is for read)
-    uint8_t result = spi.write(0x00);  // Read the register value
-    nss = 1;  // Deselect the SX1278
-    return result;
-}
+// uint8_t sx1278_read_register(uint8_t reg) {
+//     nss = 0;  // Select the SX1278 by pulling NSS low
+//     spi.write(reg & 0x7F);  // Send register address (0x7F is for read)
+//     uint8_t result = spi.write(0x00);  // Read the register value
+//     nss = 1;  // Deselect the SX1278
+//     return result;
+// }
 
-void sx1278_write_register(uint8_t reg, uint8_t value) {
-    nss = 0;  // Select the SX1278 by pulling NSS low
-    spi.write(reg | 0x80);  // Send register address with write flag (0x80)
-    spi.write(value);       // Write the value to the register
-    nss = 1;  // Deselect the SX1278
-}
+// void sx1278_write_register(uint8_t reg, uint8_t value) {
+//     nss = 0;  // Select the SX1278 by pulling NSS low
+//     spi.write(reg | 0x80);  // Send register address with write flag (0x80)
+//     spi.write(value);       // Write the value to the register
+//     nss = 1;  // Deselect the SX1278
+// }
 
 //Chilling
 
@@ -105,62 +110,62 @@ bool StartsWith(const char *a, const char *b)
 
 
 
-void poll_LoRA()
-{
+// void poll_LoRA()
+// {
 
-    float temp, pres, humd;
-    int gasv;
-    char json_buffer[128];
+//     float temp, pres, humd;
+//     int gasv;
+//     char json_buffer[128];
 
-    press_temp.get_temperature(&temp);
-    press_temp.get_pressure(&pres);
-    hum_temp.get_humidity(&humd);
-    int sensor_value = mq_sensor.read();
+//     press_temp.get_temperature(&temp);
+//     press_temp.get_pressure(&pres);
+//     hum_temp.get_humidity(&humd);
+//     int sensor_value = mq_sensor.read();
 
-    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"mq12\":%d }", pres, temp, humd, gasv);
+//     sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"mq12\":%d }", pres, temp, humd, gasv);
 
-    lora.send(json_buffer, sizeof(json_buffer));
+//     lora.send(json_buffer, sizeof(json_buffer));
 
-    char instruction_buffer[128];
+//     char instruction_buffer[128];
 
-    if (lora.receive()) 
-    {
+//     if (lora.receive()) 
+//     {
 
-        strcpy(instruction_buffer, lora.getMessage());
+//         strcpy(instruction_buffer, lora.getMessage());
 
-        // Process received data
-        if(StartsWith(instruction_buffer, "MOVEMENT-UPED"))
-        {
-            printf("MOVE UP\n");
-            uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
-        }
-        else if (StartsWith(instruction_buffer, "MOVEMENT-DOWN"))
-        {
-            printf("MOVE DOWN\n");
-            uart_Movement.write(MOVE_BACK, strlen(MOVE_BACK));
-        }
-        else if (StartsWith(instruction_buffer, "MOVEMENT-RITE"))
-        {
-            printf("MOVE RIGHT\n");
-            uart_Movement.write(MOVE_RIGHT, strlen(MOVE_RIGHT));
-        }
-        else if (StartsWith(instruction_buffer, "MOVEMENT-LEFT"))
-        {
-            printf("MOVE LEFT\n");
-            uart_Movement.write(instruction_buffer, strlen(MOVE_LEFT));
-        }
-        else if (StartsWith(instruction_buffer, "TOGGLE-LORA"))
-        {
-            enableLORA = !enableLORA;
-            printf("Toggling LoRA state to [%d]\n", enableLORA);
-        }
-        else
-        {
-            printf("Received on LoRA: %s\n",  instruction_buffer);
-        }
-    }
+//         // Process received data
+//         if(StartsWith(instruction_buffer, "MOVEMENT-UPED"))
+//         {
+//             printf("MOVE UP\n");
+//             uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
+//         }
+//         else if (StartsWith(instruction_buffer, "MOVEMENT-DOWN"))
+//         {
+//             printf("MOVE DOWN\n");
+//             uart_Movement.write(MOVE_BACK, strlen(MOVE_BACK));
+//         }
+//         else if (StartsWith(instruction_buffer, "MOVEMENT-RITE"))
+//         {
+//             printf("MOVE RIGHT\n");
+//             uart_Movement.write(MOVE_RIGHT, strlen(MOVE_RIGHT));
+//         }
+//         else if (StartsWith(instruction_buffer, "MOVEMENT-LEFT"))
+//         {
+//             printf("MOVE LEFT\n");
+//             uart_Movement.write(instruction_buffer, strlen(MOVE_LEFT));
+//         }
+//         else if (StartsWith(instruction_buffer, "TOGGLE-LORA"))
+//         {
+//             enableLORA = !enableLORA;
+//             printf("Toggling LoRA state to [%d]\n", enableLORA);
+//         }
+//         else
+//         {
+//             printf("Received on LoRA: %s\n",  instruction_buffer);
+//         }
+//     }
 
-}
+// }
 
 //always on
 void poll_TCP()
@@ -228,10 +233,17 @@ void poll_TCP()
     }   
 }
 
-int main() {
-    initializeLoRa();
+int main()
+{
+    uart_Movement.set_format(8, BufferedSerial::None, 1); 
+    uart_Movement.write(HOME_POSITION, strlen(HOME_POSITION));
+}
+
+int main2() {
+    // initializeLoRa();
 
     uart_Movement.set_format(8, BufferedSerial::None, 1); 
+    uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
 
     //sensor buffers
     uint8_t id;
@@ -307,7 +319,7 @@ int main() {
     {
         poll_TCP();
         if(enableLORA){
-            poll_LoRA()
+            // poll_LoRA();
             printf("enable LoRa\n");
         }
         ThisThread::sleep_for(500ms);
