@@ -8,15 +8,116 @@
 #include "HTS221Sensor.h"
 #include "LPS22HBSensor.h"
 #include <cstdio>
+#include <string>
 // #include "SX1278/sx1278.h"
 
-/////////////////////////////////// Movement Command Macros /////////////////////////////////////////////
+//////////////////////////////////// Gas Sensor Macros and Definitions //////////////////////////////////
 
-// #define HOME_POSITION "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n" 
-// #define MOVE_FORWAD "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#2P1300#3P1700#8P1700#9P1300#27P1700#29P1300T500D500\r\n#1P1300#7P1700#28P1700T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#2P1833#7P1500#28P1500T500D500\r\n#5P1300#6P1700#25P1700#26P1312#30P1300#32P1700T500D500\r\n#4P1300#24P1700#31P1300T500D500\r\n#2P1500#4P1500#5P1833#8P1500#24P1500#25P1167#27P1500#30P1833#31P1500T500D500\r\n#3P1500#5P1500#6P1500#9P1500#25P1500#26P1500#29P1500#30P1500#32P1500T500D500\r\n"
-// #define MOVE_BACK "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#2P1300#3P1700#8P1700#9P1300#27P1700#29P1300T500D500\r\n#1P1700#7P1300#28P1300T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#7P1500#28P1500T500D500\r\n#5P1300#6P1700#25P1700#26P1300#30P1300#32P1700T500D500\r\n#4P1700#24P1300#31P1700T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#4P1500#5P1833#8P1500#9P1500#24P1500#27P1500#29P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
-// #define MOVE_LEFT "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#1P1500#2P1300#3P1700#8P1700#9P1300#25P1500#27P1700#29P1300T500D500\r\n#1P1700#7P1700#28P1700T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#5P1300#6P1700#7P1500#25P1700#26P1300#28P1500#30P1300#32P1700T500D500\r\n#4P1700#5P1300#24P1700#25P1700#31P1700T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#8P1500#9P1500#27P1500#29P1500T500D500\r\n#4P1500#24P1500#28P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
-// #define MOVE_RIGHT "#1P1500#2P1500#3P1500#4P1500#5P1500#6P1500#7P1500#8P1500#9P1500#24P1500#25P1500#26P1500#27P1500#28P1500#29P1500#30P1500#31P1500#32P1500T500D500\r\n#1P1500#2P1700#3P1300#8P1300#9P1700#25P1500#27P1300#29P1700T500D500\r\n#1P1300#7P1300#28P1300T500D500\r\n#2P1833#8P1167#27P1167T500D500\r\n#1P1500#5P1700#6P1300#7P1500#25P1300#26P1700#28P1500#30P1700#32P1300T500D500\r\n#4P1300#5P1700#24P1300#25P1300#31P1300T500D500\r\n#5P1833#25P1167#30P1833T500D500\r\n#2P1500#3P1500#8P1500#9P1500#27P1500#29P1500T500D500\r\n#4P1500#24P1500#28P1500#31P1500T500D500\r\n#5P1500#6P1500#25P1500#26P1500#30P1500#32P1500T500D500\r\n"
+#define          GAS_LPG                      (0)
+#define         GAS_CO                       (1)
+#define          GAS_SMOKE                    (2)
+
+
+#define         MQ_PIN                       A2     //define which   analog input channel you are going to use
+#define         RL_VALUE                     (5)      //define the load resistance on the board, in kilo ohms
+#define         RO_CLEAN_AIR_FACTOR           (9.83)  //RO_CLEAR_AIR_FACTOR=(Sensor resistance in clean air)/RO,
+                                                      //which is derived from the   chart in datasheet
+ 
+/**********************Software Related Macros***********************************/
+#define          CALIBARAION_SAMPLE_TIMES     (50)    //define how many samples you are   going to take in the calibration phase
+#define         CALIBRATION_SAMPLE_INTERVAL   (500)   //define the time interal(in milisecond) between each samples in the
+                                                      //cablibration phase
+#define          READ_SAMPLE_INTERVAL         (50)    //define how many samples you are   going to take in normal operation
+#define         READ_SAMPLE_TIMES            (5)      //define the time interal(in milisecond) between each samples in 
+
+
+/****************************Globals**********************************************/
+float            LPGCurve[3]  =  {2.3,0.21,-0.47};   //two points are taken from the curve.   
+                                                    //with these two points,   a line is formed which is "approximately equivalent"
+                                                    //to   the original curve. 
+                                                    //data   format:{ x, y, slope}; point1: (lg200, 0.21), point2: (lg10000, -0.59) 
+float            COCurve[3]  =  {2.3,0.72,-0.34};    //two points are taken from the curve.   
+                                                    //with these two points,   a line is formed which is "approximately equivalent" 
+                                                    //to   the original curve.
+                                                    //data   format:{ x, y, slope}; point1: (lg200, 0.72), point2: (lg10000,  0.15) 
+float            SmokeCurve[3] ={2.3,0.53,-0.44};    //two points are taken from the curve.   
+                                                    //with these two points,   a line is formed which is "approximately equivalent" 
+                                                    //to   the original curve.
+                                                    //data   format:{ x, y, slope}; point1: (lg200, 0.53), point2: (lg10000,  -0.22)                                                     
+float            Ro           =  10;                 //Ro is initialized to 10 kilo ohms
+
+
+/*************************** MQCalibration **************************************
+Input:    mq_pin - analog channel
+Output:  Ro of the sensor
+Remarks: This function   assumes that the sensor is in clean air. It use  
+         MQResistanceCalculation   to calculates the sensor resistance in clean air 
+         and then divides it   with RO_CLEAN_AIR_FACTOR. RO_CLEAN_AIR_FACTOR is about 
+         10, which differs   slightly between different sensors.
+**********************************************************************************/   
+
+float MQResistanceCalculation(int raw_adc)
+{
+  return ( ((float)RL_VALUE*(1023-raw_adc)/raw_adc));
+}
+
+
+float MQCalibration()
+{
+  int i;
+  float val=0;
+  AnalogIn   raw_adc(MQ_PIN);  
+   
+   for (i=0;i<CALIBARAION_SAMPLE_TIMES;i++) {            //take multiple samples
+
+     val += MQResistanceCalculation(raw_adc);
+
+    thread_sleep_for(CALIBRATION_SAMPLE_INTERVAL);
+   }
+  val = val/CALIBARAION_SAMPLE_TIMES;                   //calculate the average   value
+ 
+  val = val/RO_CLEAN_AIR_FACTOR;                        //divided   by RO_CLEAN_AIR_FACTOR yields the Ro 
+                                                        //according   to the chart in the datasheet 
+ 
+  return val; 
+}
+
+float MQRead()
+{
+  int i;
+  float rs=0;
+  AnalogIn   raw_adc(MQ_PIN);  
+ 
+  for (i=0;i<READ_SAMPLE_TIMES;i++)   {
+    rs += MQResistanceCalculation(raw_adc);
+    thread_sleep_for(CALIBRATION_SAMPLE_INTERVAL);
+   }
+ 
+  rs = rs/READ_SAMPLE_TIMES;
+ 
+  return rs;  
+}
+
+int  MQGetPercentage(float rs_ro_ratio, float *pcurve)
+{
+  return (pow(10,(   ((log(rs_ro_ratio)-pcurve[1])/pcurve[2]) + pcurve[0])));
+}
+
+int MQGetGasPercentage(float rs_ro_ratio, int gas_id)
+{
+  if ( gas_id   == GAS_LPG ) {
+     return MQGetPercentage(rs_ro_ratio,LPGCurve);
+  } else   if ( gas_id == GAS_CO ) {
+     return MQGetPercentage(rs_ro_ratio,COCurve);
+   } else if ( gas_id == GAS_SMOKE ) {
+     return MQGetPercentage(rs_ro_ratio,SmokeCurve);
+   }    
+ 
+  return 0;
+}
+
+
+/////////////////////////////////// Movement Command Macros /////////////////////////////////////////////
 
 #define HOME_POSITION "#G4C1\n\r"
 #define MOVE_FORWAD "#G1C1\n\r"
@@ -26,17 +127,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 // WiFi credentials
-// const char *ssid = "Chips2021";       // Replace with your WiFi SSID
-// const char *password = "Roop$70965"; // Replace with your WiFi Password
-
-const char *ssid = "SP";       // Replace with your WiFi SSID
-const char *password = "22323554"; // Replace with your WiFi Password
+const char *ssid = "Hexapod";      
+const char *password = "12345678"; 
 
 // IP and port of the server
-// const char *host_ip = "192.168.1.18";
-const char *host_ip = "192.168.1.19"; //change this if you are screwed
+const char *host_ip = "192.168.1.102"; //change this if you are screwed
 const int port = 8080;
 
 WiFiInterface *wifi;
@@ -71,36 +167,85 @@ static DigitalOut cs(PB_6);
 #define PREAMBLE_LENGTH 8    // Preamble length
 #define SX1278_REG_VERSION  0x42
 
-// void initializeLoRa() {
-//     spi.format(8, 0);
-//     spi.frequency(1000000);
+/*void initializeLoRa() {
+    spi.format(8, 0);
+    spi.frequency(1000000);
 
-//     if (lora.init()) {
-//         lora.setFrequency(FREQUENCY);
-//         lora.setSpreadingFactor(SPREADING_FACTOR);
-//         lora.setBandwidth(BANDWIDTH);
-//         lora.setCodingRate(CODING_RATE);
-//         lora.setTxPower(TX_POWER);
-//         lora.setPreambleLength(PREAMBLE_LENGTH);
-//     }
-// }
+    if (lora.init()) {
+        lora.setFrequency(FREQUENCY);
+        lora.setSpreadingFactor(SPREADING_FACTOR);
+        lora.setBandwidth(BANDWIDTH);
+        lora.setCodingRate(CODING_RATE);
+        lora.setTxPower(TX_POWER);
+        lora.setPreambleLength(PREAMBLE_LENGTH);
+    }
+}*/
 
-// uint8_t sx1278_read_register(uint8_t reg) {
-//     nss = 0;  // Select the SX1278 by pulling NSS low
-//     spi.write(reg & 0x7F);  // Send register address (0x7F is for read)
-//     uint8_t result = spi.write(0x00);  // Read the register value
-//     nss = 1;  // Deselect the SX1278
-//     return result;
-// }
+/*uint8_t sx1278_read_register(uint8_t reg) {
+    nss = 0;  // Select the SX1278 by pulling NSS low
+    spi.write(reg & 0x7F);  // Send register address (0x7F is for read)
+    uint8_t result = spi.write(0x00);  // Read the register value
+    nss = 1;  // Deselect the SX1278
+    return result;
+}*/
 
-// void sx1278_write_register(uint8_t reg, uint8_t value) {
-//     nss = 0;  // Select the SX1278 by pulling NSS low
-//     spi.write(reg | 0x80);  // Send register address with write flag (0x80)
-//     spi.write(value);       // Write the value to the register
-//     nss = 1;  // Deselect the SX1278
-// }
+/*
+void sx1278_write_register(uint8_t reg, uint8_t value) {
+    nss = 0;  // Select the SX1278 by pulling NSS low
+    spi.write(reg | 0x80);  // Send register address with write flag (0x80)
+    spi.write(value);       // Write the value to the register
+    nss = 1;  // Deselect the SX1278
+}*/
 
-//Chilling
+/*
+void poll_LoRA()
+{
+    float temp, pres, humd;
+    int gasv;
+    char json_buffer[128];
+    press_temp.get_temperature(&temp);
+    press_temp.get_pressure(&pres);
+    hum_temp.get_humidity(&humd);
+    int sensor_value = mq_sensor.read();
+    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"mq12\":%d }", pres, temp, humd, gasv);
+    lora.send(json_buffer, sizeof(json_buffer));
+    char instruction_buffer[128];
+    if (lora.receive()) 
+    {
+        strcpy(instruction_buffer, lora.getMessage());
+        // Process received data
+        if(StartsWith(instruction_buffer, "MOVEMENT-UPED"))
+        {
+            printf("MOVE UP\n");
+            uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
+        }
+        else if (StartsWith(instruction_buffer, "MOVEMENT-DOWN"))
+        {
+            printf("MOVE DOWN\n");
+            uart_Movement.write(MOVE_BACK, strlen(MOVE_BACK));
+        }
+        else if (StartsWith(instruction_buffer, "MOVEMENT-RITE"))
+        {
+            printf("MOVE RIGHT\n");
+            uart_Movement.write(MOVE_RIGHT, strlen(MOVE_RIGHT));
+        }
+        else if (StartsWith(instruction_buffer, "MOVEMENT-LEFT"))
+        {
+            printf("MOVE LEFT\n");
+            uart_Movement.write(instruction_buffer, strlen(MOVE_LEFT));
+        }
+        else if (StartsWith(instruction_buffer, "TOGGLE-LORA"))
+        {
+            enableLORA = !enableLORA;
+            printf("Toggling LoRA state to [%d]\n", enableLORA);
+        }
+        else
+        {
+            printf("Received on LoRA: %s\n",  instruction_buffer);
+        }
+    }
+}
+*/
 
 bool StartsWith(const char *a, const char *b)
 {
@@ -108,78 +253,26 @@ bool StartsWith(const char *a, const char *b)
    return 0;
 }
 
-
-
-// void poll_LoRA()
-// {
-
-//     float temp, pres, humd;
-//     int gasv;
-//     char json_buffer[128];
-
-//     press_temp.get_temperature(&temp);
-//     press_temp.get_pressure(&pres);
-//     hum_temp.get_humidity(&humd);
-//     int sensor_value = mq_sensor.read();
-
-//     sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"mq12\":%d }", pres, temp, humd, gasv);
-
-//     lora.send(json_buffer, sizeof(json_buffer));
-
-//     char instruction_buffer[128];
-
-//     if (lora.receive()) 
-//     {
-
-//         strcpy(instruction_buffer, lora.getMessage());
-
-//         // Process received data
-//         if(StartsWith(instruction_buffer, "MOVEMENT-UPED"))
-//         {
-//             printf("MOVE UP\n");
-//             uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
-//         }
-//         else if (StartsWith(instruction_buffer, "MOVEMENT-DOWN"))
-//         {
-//             printf("MOVE DOWN\n");
-//             uart_Movement.write(MOVE_BACK, strlen(MOVE_BACK));
-//         }
-//         else if (StartsWith(instruction_buffer, "MOVEMENT-RITE"))
-//         {
-//             printf("MOVE RIGHT\n");
-//             uart_Movement.write(MOVE_RIGHT, strlen(MOVE_RIGHT));
-//         }
-//         else if (StartsWith(instruction_buffer, "MOVEMENT-LEFT"))
-//         {
-//             printf("MOVE LEFT\n");
-//             uart_Movement.write(instruction_buffer, strlen(MOVE_LEFT));
-//         }
-//         else if (StartsWith(instruction_buffer, "TOGGLE-LORA"))
-//         {
-//             enableLORA = !enableLORA;
-//             printf("Toggling LoRA state to [%d]\n", enableLORA);
-//         }
-//         else
-//         {
-//             printf("Received on LoRA: %s\n",  instruction_buffer);
-//         }
-//     }
-
-// }
-
 //always on
 void poll_TCP()
 {
-    
-
     float temp, pres, humd;
-    char json_buffer[128];
+    char json_buffer[256];
 
+    int PPMlpg, PPMcarbonmonoxide, PPMsmoke;
+    bool isSafeGas = true;
+    
     press_temp.get_temperature(&temp);
     press_temp.get_pressure(&pres);
     hum_temp.get_humidity(&humd);
+    
+    PPMlpg = MQGetGasPercentage(MQRead()/Ro, GAS_LPG);
+    PPMcarbonmonoxide = MQGetGasPercentage(MQRead()/Ro, GAS_CO);
+    PPMsmoke = MQGetGasPercentage(MQRead()/Ro, GAS_SMOKE);
+    
+    if(PPMsmoke > 3 || PPMcarbonmonoxide > 2 || PPMlpg > 3) isSafeGas = false;
 
-    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f}", pres, temp, humd);
+    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"isSafe\":%d}", pres, temp, humd, isSafeGas);
 
     printf("Called send\n");
 
@@ -192,8 +285,6 @@ void poll_TCP()
     printf("Called recv\n");
     char buffer[1024];
     ret = socket.recv(buffer, sizeof(buffer) - 1); // Leave space for null terminator                       
-    // const char *COMMANDS[] = {"G1F1", "G2F1", "G3F1", "G4F1"};
-    // const int COMMAND_SIZE = 6;
 
     if (ret < 0) {
         printf("ERROR: Could not receive data (%d).\n", ret);
@@ -233,17 +324,12 @@ void poll_TCP()
     }   
 }
 
-int main()
-{
-    uart_Movement.set_format(8, BufferedSerial::None, 1); 
-    uart_Movement.write(HOME_POSITION, strlen(HOME_POSITION));
-}
 
-int main2() {
+int main() {
     // initializeLoRa();
 
     uart_Movement.set_format(8, BufferedSerial::None, 1); 
-    uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
+    uart_Movement.write(HOME_POSITION, strlen(HOME_POSITION));
 
     //sensor buffers
     uint8_t id;
@@ -263,10 +349,15 @@ int main2() {
     hum_temp.read_id(&id);
     printf("HTS221  humidity & temperature    = 0x%X\r\n", id);
 
+    printf("Calibrating gas sensor...\r\n");
+    float Ro = MQCalibration();
+    printf("Calibration done.\r\n");
+
+
     printf("Connecting to WiFi...\n");
 
     // Get a handle to the WiFi interface
-      SocketAddress a;
+    SocketAddress a;
     wifi = WiFiInterface::get_default_instance();
     wifi->get_ip_address(&a);
     if (!wifi) {
@@ -296,7 +387,7 @@ int main2() {
         return -1;
     }
 
-    //connect to my "server"
+    //connect to hexapod central command 
     ret = socket.connect(server_addr);
     if (ret != 0) {
         printf("ERROR: Could not connect to server (%d).\n", ret);
@@ -315,13 +406,18 @@ int main2() {
     
     printf("Message sent to server: %s\n", message);
 
+    if(enableLORA) printf("LoRa Enabled.");
+
     while(1)
     {
         poll_TCP();
-        if(enableLORA){
+
+        if(enableLORA)
+        {
             // poll_LoRA();
-            printf("enable LoRa\n");
+            printf("LoRa Enabled.");
         }
-        ThisThread::sleep_for(500ms);
+
+        ThisThread::sleep_for(100ms);
     }
 }
