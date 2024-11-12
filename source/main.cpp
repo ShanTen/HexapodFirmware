@@ -22,7 +22,7 @@
 #define MOVE_FORWAD "#G1C1\n\r"
 #define MOVE_BACK "#G2C1\n\r"
 #define MOVE_RIGHT "#G3C1\n\r"
-#define MOVE_LEFT "#G4C1\n\r"
+#define MOVE_LEFT "#G5C1\n\r" 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
