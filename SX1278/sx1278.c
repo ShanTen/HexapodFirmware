@@ -6,7 +6,6 @@
  */
 #include "registers.h"
 #include "sx1278.h"
-
 #include <math.h>
 #include <string.h>
 
