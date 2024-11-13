@@ -4,12 +4,18 @@
 #include "mbed_events.h"
 
 /* Includes */
-#include "mbed.h"
 #include "HTS221Sensor.h"
 #include "LPS22HBSensor.h"
 #include <cstdio>
-#include <string>
-// #include "SX1278/sx1278.h"
+#include <cstring>
+#include "LORA/platform/mbed/lora-mbed.h"
+/////////////////////////////////// Movement Command Macros /////////////////////////////////////////////
+
+#define HOME_POSITION "#G4C1\n\r"
+#define MOVE_FORWAD "#G1C1\n\r"
+#define MOVE_BACK "#G2C1\n\r"
+#define MOVE_RIGHT "#G3C1\n\r"
+#define MOVE_LEFT "#G5C1\n\r" 
 
 //////////////////////////////////// Gas Sensor Macros and Definitions //////////////////////////////////
 
@@ -30,8 +36,15 @@
 #define          READ_SAMPLE_INTERVAL         (50)    //define how many samples you are   going to take in normal operation
 #define         READ_SAMPLE_TIMES            (5)      //define the time interal(in milisecond) between each samples in 
 
+/********************** Utils ***********************************/
 
-/****************************Globals**********************************************/
+bool StartsWith(const char *a, const char *b)
+{
+   if(strncmp(a, b, strlen(b)) == 0) return 1;
+   return 0;
+}
+
+/****************************Globals Gas Sensor**********************************************/
 float            LPGCurve[3]  =  {2.3,0.21,-0.47};   //two points are taken from the curve.   
                                                     //with these two points,   a line is formed which is "approximately equivalent"
                                                     //to   the original curve. 
@@ -117,22 +130,14 @@ int MQGetGasPercentage(float rs_ro_ratio, int gas_id)
 }
 
 
-/////////////////////////////////// Movement Command Macros /////////////////////////////////////////////
-
-#define HOME_POSITION "#G4C1\n\r"
-#define MOVE_FORWAD "#G1C1\n\r"
-#define MOVE_BACK "#G2C1\n\r"
-#define MOVE_RIGHT "#G3C1\n\r"
-#define MOVE_LEFT "#G5C1\n\r" 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // WiFi credentials
 const char *ssid = "Hexapod";      
-const char *password = "12345678"; 
+const char *password = "12345678\0"; 
 
 // IP and port of the server
-const char *host_ip = "192.168.1.102"; //change this if you are screwed
+const char *host_ip = "192.168.0.101\0"; //change this if you are screwed
 const int port = 8080;
 
 WiFiInterface *wifi;
@@ -151,107 +156,136 @@ static HTS221Sensor hum_temp(&devI2c);
 #define RX_PIN PC_5  // Transmit pin (A0)
 
 static BufferedSerial uart_Movement(TX_PIN, RX_PIN, 9600);  // UART3 -- Sending Movement Instructions => wired 
-static DigitalIn mq_sensor(PA_15); 
 
-// //Bing
+//////////////////////////////////////// LoRa Set up ////////////////////////////////////////
 
-static SPI spi_LoRA(PA_7, PA_6, PA_5); // SPI -- LoRA 
-static DigitalOut cs(PB_6);
-// SX1278_LoRa lora(&spi, &nss);
-// Configuration constants for India (865-867 MHz band)
-#define FREQUENCY 865500000  // 865.5 MHz
-#define BANDWIDTH 125000     // 125 kHz bandwidth
-#define SPREADING_FACTOR 7   // SF7
-#define CODING_RATE 5        // 4/5 coding rate
-#define TX_POWER 14          // 14 dBm transmit power
-#define PREAMBLE_LENGTH 8    // Preamble length
-#define SX1278_REG_VERSION  0x42
+lora dev;
+lora_mbed mbed_dev;
 
-/*void initializeLoRa() {
-    spi.format(8, 0);
-    spi.frequency(1000000);
+#define LORA_RADIO_RECEIVER_ID  0xAB
+#define LORA_RADIO_SENDER_ID    0xCD
+ 
+/* Pinout dependednt on your hw */
+#define RADIO_MOSI_PIN  PA_5
+#define RADIO_MISO_PIN  PA_6
+#define RADIO_SCK_PIN   PA_7
+#define RADIO_NSS_PIN   PA_8
+#define RADIO_RST_PIN   PA_9
+#define RADIO_DI0_PIN   PA_10
 
-    if (lora.init()) {
-        lora.setFrequency(FREQUENCY);
-        lora.setSpreadingFactor(SPREADING_FACTOR);
-        lora.setBandwidth(BANDWIDTH);
-        lora.setCodingRate(CODING_RATE);
-        lora.setTxPower(TX_POWER);
-        lora.setPreambleLength(PREAMBLE_LENGTH);
-    }
-}*/
-
-/*uint8_t sx1278_read_register(uint8_t reg) {
-    nss = 0;  // Select the SX1278 by pulling NSS low
-    spi.write(reg & 0x7F);  // Send register address (0x7F is for read)
-    uint8_t result = spi.write(0x00);  // Read the register value
-    nss = 1;  // Deselect the SX1278
-    return result;
-}*/
-
-/*
-void sx1278_write_register(uint8_t reg, uint8_t value) {
-    nss = 0;  // Select the SX1278 by pulling NSS low
-    spi.write(reg | 0x80);  // Send register address with write flag (0x80)
-    spi.write(value);       // Write the value to the register
-    nss = 1;  // Deselect the SX1278
-}*/
-
-/*
-void poll_LoRA()
+typedef struct
 {
-    float temp, pres, humd;
-    int gasv;
-    char json_buffer[128];
-    press_temp.get_temperature(&temp);
-    press_temp.get_pressure(&pres);
-    hum_temp.get_humidity(&humd);
-    int sensor_value = mq_sensor.read();
-    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"mq12\":%d }", pres, temp, humd, gasv);
-    lora.send(json_buffer, sizeof(json_buffer));
-    char instruction_buffer[128];
-    if (lora.receive()) 
+	uint8_t receiver_id;           // Receiver address
+	uint8_t sender_id;             // Sender address
+	uint8_t msg_id;                // Message ID
+	uint8_t payload_len;           // Message payload length
+} radio_layer_msg_header;
+
+typedef struct
+{
+	uint8_t hdr[3];
+	uint8_t status;
+	char sensor_data[256];
+} radio_msg_sensor_frame;
+
+//sender code 
+void radio_send(radio_msg_sensor_frame *msgf)
+{
+    static uint8_t msg_cnt = 0;
+    if (!msgf)
     {
-        strcpy(instruction_buffer, lora.getMessage());
-        // Process received data
-        if(StartsWith(instruction_buffer, "MOVEMENT-UPED"))
-        {
-            printf("MOVE UP\n");
-            uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
-        }
-        else if (StartsWith(instruction_buffer, "MOVEMENT-DOWN"))
-        {
-            printf("MOVE DOWN\n");
-            uart_Movement.write(MOVE_BACK, strlen(MOVE_BACK));
-        }
-        else if (StartsWith(instruction_buffer, "MOVEMENT-RITE"))
-        {
-            printf("MOVE RIGHT\n");
-            uart_Movement.write(MOVE_RIGHT, strlen(MOVE_RIGHT));
-        }
-        else if (StartsWith(instruction_buffer, "MOVEMENT-LEFT"))
-        {
-            printf("MOVE LEFT\n");
-            uart_Movement.write(instruction_buffer, strlen(MOVE_LEFT));
-        }
-        else if (StartsWith(instruction_buffer, "TOGGLE-LORA"))
-        {
-            enableLORA = !enableLORA;
-            printf("Toggling LoRA state to [%d]\n", enableLORA);
-        }
-        else
-        {
-            printf("Received on LoRA: %s\n",  instruction_buffer);
-        }
+        return;
     }
-}
-*/
 
-bool StartsWith(const char *a, const char *b)
-{
-   if(strncmp(a, b, strlen(b)) == 0) return 1;
-   return 0;
+    // Send result data
+    radio_layer_msg_header hdr;
+    hdr.receiver_id = LORA_RADIO_RECEIVER_ID;
+    hdr.sender_id = LORA_RADIO_SENDER_ID;
+    hdr.msg_id = msg_cnt++;
+    hdr.payload_len = sizeof(radio_msg_sensor_frame);
+    lora_begin_packet(&dev, false);                     // start packet
+    lora_write_data(&dev, (const uint8_t*)&hdr, sizeof(radio_layer_msg_header));
+    lora_write_data(&dev, (const uint8_t*)msgf, sizeof(radio_msg_sensor_frame));
+    lora_end_packet(&dev, false);                       // finish packet and send it
+    // Switch to RX mode
+    lora_receive(&dev, 0);
 }
+
+static void on_rx_done(void *ctx, int packet_size)
+{
+    lora *const dev = (lora*const) ctx;
+
+    radio_layer_msg_header hdr;
+    radio_msg_sensor_frame frame;
+    uint8_t *p = (uint8_t*)&frame;
+    size_t i = 0;
+
+    if (packet_size == 0)
+    {
+        goto err;
+    }
+
+    // Read packet header bytes:
+    hdr.receiver_id = lora_read(dev);   // recipient address
+    hdr.sender_id = lora_read(dev);     // sender address
+    hdr.msg_id = lora_read(dev);        // incoming msg ID
+    hdr.payload_len = lora_read(dev);   // incoming msg length
+
+    // If the recipient is valid,
+    if (hdr.receiver_id != 0xFE)
+    {
+        goto err;
+    }
+
+    // Check payload length
+    if (hdr.payload_len != sizeof(radio_msg_sensor_frame))
+    {
+        goto err;
+    }
+
+    // Read payload frame
+    while (lora_available(dev) && i < hdr.payload_len)
+    {
+        *(p+i) = (uint8_t)lora_read(dev);
+        i++;
+    }
+
+    // 256 byte string buffer, possible movement options = {"MOVEMENT-UPED", "MOVEMENT-RITE", "MOVEMENT-LEFT", "MOVEMENT-BACK"}
+    if(StartsWith(frame.sensor_data, "MOVEMENT-UPED"))
+    {
+        printf("MOVE UP\n");
+        uart_Movement.write(MOVE_FORWAD, strlen(MOVE_FORWAD));
+    }
+    else if (StartsWith(frame.sensor_data, "MOVEMENT-DOWN"))
+    {
+        printf("MOVE DOWN\n");
+        uart_Movement.write(MOVE_BACK, strlen(MOVE_BACK));
+    }
+    else if (StartsWith(frame.sensor_data, "MOVEMENT-RITE"))
+    {
+        printf("MOVE RIGHT\n");
+        uart_Movement.write(MOVE_RIGHT, strlen(MOVE_RIGHT));
+    }
+    else if (StartsWith(frame.sensor_data, "MOVEMENT-LEFT"))
+    {
+        printf("MOVE LEFT\n");
+        uart_Movement.write(MOVE_LEFT, strlen(MOVE_LEFT));
+    }
+    else if (StartsWith(frame.sensor_data, "TOGGLE-LORA"))
+    {
+        enableLORA = !enableLORA;
+        printf("Toggling LoRA state to [%d]\n", enableLORA);
+    }
+    else
+    {
+        printf("DataRecieved - [%s]\n", frame.sensor_data);
+    }
+    err:
+        // Switch back into rx mode
+        lora_receive(dev, 0);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 //always on
 void poll_TCP()
@@ -272,7 +306,7 @@ void poll_TCP()
     
     if(PPMsmoke > 3 || PPMcarbonmonoxide > 2 || PPMlpg > 3) isSafeGas = false;
 
-    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"isSafe\":%d}", pres, temp, humd, isSafeGas);
+    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"gascomposition\":%d}", pres, temp, humd, isSafeGas);
 
     printf("Called send\n");
 
@@ -320,13 +354,61 @@ void poll_TCP()
         {
             printf("DataRecieved - [%s]\n", buffer);
         }
-        
     }   
+}
+
+void sendDataViaLoRa()
+{
+    radio_msg_sensor_frame msgf =
+    {
+        .hdr = {'T','R','0'}, //header thing
+    };
+
+    float temp, pres, humd;
+    char json_buffer[256];
+
+    int PPMlpg, PPMcarbonmonoxide, PPMsmoke;
+    bool isSafeGas = true;
+    
+    press_temp.get_temperature(&temp);
+    press_temp.get_pressure(&pres);
+    hum_temp.get_humidity(&humd);
+    
+    PPMlpg = MQGetGasPercentage(MQRead()/Ro, GAS_LPG);
+    PPMcarbonmonoxide = MQGetGasPercentage(MQRead()/Ro, GAS_CO);
+    PPMsmoke = MQGetGasPercentage(MQRead()/Ro, GAS_SMOKE);
+    
+    if(PPMsmoke > 3 || PPMcarbonmonoxide > 2 || PPMlpg > 3) isSafeGas = false;
+
+    sprintf(json_buffer, "SENSOR-DATA-{\"pressure\":%.2f, \"temperature\":%.2f, \"humidity\":%.2f, \"gascomposition\":%d}", pres, temp, humd, isSafeGas);
+
+    msgf.status = 0;
+    strncpy(msgf.sensor_data, json_buffer, 256);
+    radio_send(&msgf);
 }
 
 
 int main() {
-    // initializeLoRa();
+    printf("Hit 0\r\n");
+    
+    //initialize lora 
+    lora dev;
+    lora_mbed mbed_dev;
+
+    // Set mbed_dev
+    SPI spi(RADIO_MOSI_PIN, RADIO_MISO_PIN, RADIO_SCK_PIN);
+    DigitalOut nss(RADIO_NSS_PIN);
+    DigitalInOut rst(RADIO_RST_PIN);
+    InterruptIn dio0(RADIO_DI0_PIN);
+
+    mbed_dev.spi =   &spi;
+    mbed_dev.nss =   &nss;
+    mbed_dev.reset = &rst;
+    mbed_dev.dio0 =  &dio0;
+
+    dev.frequency = 8655E5;
+    dev.on_receive = NULL;
+    dev.on_tx_done = NULL;
 
     uart_Movement.set_format(8, BufferedSerial::None, 1); 
     uart_Movement.write(HOME_POSITION, strlen(HOME_POSITION));
@@ -396,7 +478,7 @@ int main() {
 
     printf("Connected to server at %s:%d\n", host_ip, port);
 
-    // Send a simple message to the server
+    // Send ACK message to the server
     const char *message = "ACK - Hello from DISCO_L475VG_IOT01A!\n";
     ret = socket.send(message, strlen(message));
     if (ret < 0) {
@@ -414,8 +496,10 @@ int main() {
 
         if(enableLORA)
         {
-            // poll_LoRA();
             printf("LoRa Enabled.");
+            sendDataViaLoRa();
+            lora_mbed_init(&dev, &mbed_dev);
+            lora_on_receive(&dev, on_rx_done);
         }
 
         ThisThread::sleep_for(100ms);
